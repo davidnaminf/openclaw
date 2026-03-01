@@ -1,0 +1,12 @@
+Traceback (most recent call last):
+  File "/Users/assa_david/OpenClawSetup/skills/mystock/scripts/generate_daily_account_dashboard.py", line 824, in <module>
+    main()
+  File "/Users/assa_david/OpenClawSetup/skills/mystock/scripts/generate_daily_account_dashboard.py", line 815, in main
+    out_file.write_text(md, encoding="utf-8")
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/pathlib.py", line 1275, in write_text
+    with self.open(mode='w', encoding=encoding, errors=errors) as f:
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/pathlib.py", line 1242, in open
+    return io.open(self, mode, buffering, encoding, errors, newline,
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/pathlib.py", line 1110, in _opener
+    return self._accessor.open(self, flags, mode)
+PermissionError: [Errno 1] Operation not permitted: '/Users/assa_david/Documents/MyAswomeVault/10.WorkFlow/04.Investment/01.Status/DASHBOARD_DAILY_20260301.md'

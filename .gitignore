@@ -120,3 +120,6 @@ dist/protocol.schema.json
 
 # Synthing
 **/.stfolder/
+
+# Local OpenClaw runtime data
+.openclaw/

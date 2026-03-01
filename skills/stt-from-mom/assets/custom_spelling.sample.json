@@ -1,0 +1,17 @@
+﻿{
+  "Infineon": ["infinion", "infinion", "infiniteon", "Infiniion"],
+  "Luxshare": ["lux share", "look share", "lokshare", "luxio", "Loxone"],
+  "MMIC": ["m mic", "m-mic", "emic", "MMH"],
+  "DOA": ["d o a", "doa"],
+  "SNR": ["s n r", "snr"],
+  "RMSE": ["r m s e", "armse"],
+  "TC45": ["tc 45", "t c 45"],
+  "Francesca": ["franciska", "franseska"],
+  "Lorenz": ["laurence", "lawrence", "lorence"],
+  "P2S": ["p 2 s", "P-Trace"],
+  "LowPower" : ["raw power"],
+  "CV" : ["CIVI"],
+  "BYD" : ["PYD"],
+  "CARKIT" : ["Kraken"],
+  "88c0" : ["AAC0"]
+}
