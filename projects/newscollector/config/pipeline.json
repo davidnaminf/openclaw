@@ -1,0 +1,229 @@
+{
+  "report_timezone": "Asia/Seoul",
+  "lookback_hours": 24,
+  "runtime": {
+    "fetch_article_text": true,
+    "article_fetch_workers": 4,
+    "article_fetch_timeout_seconds": 25,
+    "article_fetch_retries": 1,
+    "subtitle_dir": "subtitles",
+    "yt_dlp_path": "yt-dlp",
+    "subtitle_command_timeout_seconds": 30,
+    "raw_collection_copy_dir": "C:/Users/namsh/Documents/MyAswomeVault/10.WorkFlow/02.DailyReport/raw_collection",
+    "default_subtitle_langs": ["ko-orig", "ko", "en"]
+  },
+  "history": {
+    "enabled": true,
+    "db_path": "output/history/newscollector.sqlite3",
+    "bootstrap_lookback_days": 7,
+    "weekly_window_days": 7
+  },
+  "weekly_summary": {
+    "enabled": true,
+    "template_path": "C:/Users/namsh/Documents/MyAswomeVault/TEMP/88. Template/Daily Summary.md",
+    "output_dir": "C:/Users/namsh/Documents/MyAswomeVault/10.WorkFlow/02.DailyReport",
+    "model": "gpt-5",
+    "max_rss_items": 70,
+    "max_youtube_items": 50
+  },
+  "context_sources": {
+    "weather": {
+      "enabled": true,
+      "provider": "open_meteo",
+      "location_name": "Seoul",
+      "latitude": 37.5665,
+      "longitude": 126.9780,
+      "timezone": "Asia/Seoul",
+      "forecast_days": 1
+    },
+    "holidays": {
+      "enabled": true,
+      "provider": "nager_date",
+      "country_codes": ["KR", "US", "DE", "AT", "CN"],
+      "window_days": 7,
+      "manual_ranges": {
+        "CN": [
+          {
+            "start": "2026-02-15",
+            "end": "2026-02-23",
+            "name": "Chinese New Year (Spring Festival)",
+            "local_name": "春节"
+          }
+        ]
+      }
+    }
+  },
+  "filters": {
+    "enabled": true,
+    "topic_keywords": [],
+    "dedupe_titles": true,
+    "include_sources": [],
+    "exclude_sources": [],
+    "source_weights": {
+      "Reuters": 1.4,
+      "Bloomberg": 1.3,
+      "Financial Times": 1.2,
+      "CNBC": 1.0,
+      "Wall Street Journal": 1.1,
+      "Federal Reserve": 1.6,
+      "BLS": 1.6,
+      "Semiconductor Engineering": 1.0,
+      "EE Times": 1.0
+    },
+    "min_score": 0.0,
+    "max_news_items": 100,
+    "max_videos": 30,
+    "apply_topic_filter_to_youtube": false
+  },
+  "sources": [
+    {
+      "id": "reuters_business",
+      "type": "rss",
+      "name": "Reuters",
+      "url": "https://feeds.reuters.com/reuters/businessNews",
+      "enabled": true
+    },
+    {
+      "id": "cnbc_topnews",
+      "type": "rss",
+      "name": "CNBC",
+      "url": "https://www.cnbc.com/id/100003114/device/rss/rss.html",
+      "enabled": true
+    },
+    {
+      "id": "federal_reserve_press",
+      "type": "rss",
+      "name": "Federal Reserve",
+      "url": "https://www.federalreserve.gov/feeds/press_all.xml",
+      "enabled": true
+    },
+    {
+      "id": "bls_release",
+      "type": "rss",
+      "name": "BLS",
+      "url": "https://www.bls.gov/feed/news_release/rss.xml",
+      "enabled": true
+    },
+    {
+      "id": "semiconductor_engineering",
+      "type": "rss",
+      "name": "Semiconductor Engineering",
+      "url": "https://semiengineering.com/feed/",
+      "enabled": true
+    },
+    {
+      "id": "ee_times",
+      "type": "rss",
+      "name": "EE Times",
+      "url": "https://www.eetimes.com/feed/",
+      "enabled": true
+    },
+    {
+      "id": "yonhap_economy",
+      "type": "rss",
+      "name": "Yonhap Economy",
+      "url": "https://www.yna.co.kr/rss/economy.xml",
+      "enabled": false
+    },
+    {
+      "id": "mk_economy",
+      "type": "rss",
+      "name": "MK Economy",
+      "url": "https://www.mk.co.kr/rss/30100041/",
+      "enabled": true
+    },
+    {
+      "id": "hankyung_economy",
+      "type": "rss",
+      "name": "Hankyung Economy",
+      "url": "https://www.hankyung.com/feed/economy",
+      "enabled": true
+    },
+    {
+      "id": "hankyung_finance",
+      "type": "rss",
+      "name": "Hankyung Finance",
+      "url": "https://www.hankyung.com/feed/finance",
+      "enabled": true
+    },
+    {
+      "id": "newsis_economy",
+      "type": "rss",
+      "name": "Newsis Economy",
+      "url": "https://www.newsis.com/RSS/economy.xml",
+      "enabled": false
+    },
+    {
+      "id": "juns_economy",
+      "type": "youtube_channel",
+      "name": "JunsEconomyLab",
+      "channel_id": "UCznImSIaxZR7fdLCICLdgaQ",
+      "enabled": true,
+      "extract_subtitles": true,
+      "subtitle_langs": ["ko-orig", "ko", "en"]
+    },
+    {
+      "id": "mijooeun",
+      "type": "youtube_channel",
+      "name": "미국주식으로 은퇴하기 - 미주은",
+      "channel_id": "UCNnwmqZOxSuOiF3_c7mAGWA",
+      "enabled": true,
+      "extract_subtitles": true,
+      "subtitle_langs": ["ko-orig", "ko", "en"]
+    },
+    {
+      "id": "orlando_campus",
+      "type": "youtube_channel",
+      "name": "올랜도 킴 미국주식",
+      "channel_id": "UCwSSqi-s0wcH6pJbH3YPZqQ",
+      "enabled": true,
+      "extract_subtitles": true,
+      "subtitle_langs": ["ko-orig", "ko", "en"]
+    },
+    {
+      "id": "shawnkwon",
+      "type": "youtube_channel",
+      "name": "가을바람월드",
+      "channel_id": "UCy0oWB_icKn_S8OZwlw3U6A",
+      "enabled": true,
+      "extract_subtitles": true,
+      "subtitle_langs": ["ko-orig", "ko", "en"]
+    },
+    {
+      "id": "protv_3",
+      "type": "youtube_channel",
+      "name": "삼프로TV 3PROTV",
+      "channel_id": "UChlv4GSd7OQl3js-jkLOnFA",
+      "enabled": true,
+      "extract_subtitles": true,
+      "subtitle_langs": ["ko-orig", "ko", "en"]
+    },
+    {
+      "id": "mbcnews11",
+      "type": "youtube_channel",
+      "name": "MBCNEWS",
+      "channel_id": "UCF4Wxdo3inmxP-Y59wXDsFw",
+      "enabled": true,
+      "extract_subtitles": true,
+      "subtitle_langs": ["ko-orig", "ko", "en"]
+    },
+    {
+      "id": "leejaemyungtv",
+      "type": "youtube_channel",
+      "name": "이재명tv",
+      "channel_id": "UCNJM6dqu70Qr6VaseiW1Org",
+      "enabled": true,
+      "extract_subtitles": true,
+      "subtitle_langs": ["ko-orig", "ko", "en"]
+    },
+    {
+      "id": "ktv_korea",
+      "type": "youtube_channel",
+      "name": "KTV 국민방송",
+      "channel_id": "UCIMOytYIzaUpoAM2bpT4JZQ",
+      "enabled": true,
+      "extract_subtitles": true,
+      "subtitle_langs": ["ko-orig", "ko", "en"]
+    }
+  ]
+}

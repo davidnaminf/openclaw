@@ -1,0 +1,36 @@
+name: daily-report
+
+on:
+  workflow_dispatch:
+  schedule:
+    # 11:30 UTC ~= 06:30 ET (adjust seasonally as needed)
+    - cron: "30 11 * * 1-5"
+
+jobs:
+  run-report:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Generate report
+        env:
+          PIPELINE_CONFIG_FILE: config/pipeline.json
+          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+        run: python -m newscollector.main
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: daily-report
+          path: output/*
