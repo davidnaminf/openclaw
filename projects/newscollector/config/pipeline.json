@@ -10,7 +10,11 @@
     "yt_dlp_path": "yt-dlp",
     "subtitle_command_timeout_seconds": 30,
     "raw_collection_copy_dir": "C:/Users/namsh/Documents/MyAswomeVault/10.WorkFlow/02.DailyReport/raw_collection",
-    "default_subtitle_langs": ["ko-orig", "ko", "en"]
+    "default_subtitle_langs": [
+      "ko-orig",
+      "ko",
+      "en"
+    ]
   },
   "history": {
     "enabled": true,
@@ -39,7 +43,13 @@
     "holidays": {
       "enabled": true,
       "provider": "nager_date",
-      "country_codes": ["KR", "US", "DE", "AT", "CN"],
+      "country_codes": [
+        "KR",
+        "US",
+        "DE",
+        "AT",
+        "CN"
+      ],
       "window_days": 7,
       "manual_ranges": {
         "CN": [
@@ -158,72 +168,104 @@
       "type": "youtube_channel",
       "name": "JunsEconomyLab",
       "channel_id": "UCznImSIaxZR7fdLCICLdgaQ",
-      "enabled": true,
+      "enabled": false,
       "extract_subtitles": true,
-      "subtitle_langs": ["ko-orig", "ko", "en"]
+      "subtitle_langs": [
+        "ko-orig",
+        "ko",
+        "en"
+      ]
     },
     {
       "id": "mijooeun",
       "type": "youtube_channel",
       "name": "미국주식으로 은퇴하기 - 미주은",
       "channel_id": "UCNnwmqZOxSuOiF3_c7mAGWA",
-      "enabled": true,
+      "enabled": false,
       "extract_subtitles": true,
-      "subtitle_langs": ["ko-orig", "ko", "en"]
+      "subtitle_langs": [
+        "ko-orig",
+        "ko",
+        "en"
+      ]
     },
     {
       "id": "orlando_campus",
       "type": "youtube_channel",
       "name": "올랜도 킴 미국주식",
       "channel_id": "UCwSSqi-s0wcH6pJbH3YPZqQ",
-      "enabled": true,
+      "enabled": false,
       "extract_subtitles": true,
-      "subtitle_langs": ["ko-orig", "ko", "en"]
+      "subtitle_langs": [
+        "ko-orig",
+        "ko",
+        "en"
+      ]
     },
     {
       "id": "shawnkwon",
       "type": "youtube_channel",
       "name": "가을바람월드",
       "channel_id": "UCy0oWB_icKn_S8OZwlw3U6A",
-      "enabled": true,
+      "enabled": false,
       "extract_subtitles": true,
-      "subtitle_langs": ["ko-orig", "ko", "en"]
+      "subtitle_langs": [
+        "ko-orig",
+        "ko",
+        "en"
+      ]
     },
     {
       "id": "protv_3",
       "type": "youtube_channel",
       "name": "삼프로TV 3PROTV",
       "channel_id": "UChlv4GSd7OQl3js-jkLOnFA",
-      "enabled": true,
+      "enabled": false,
       "extract_subtitles": true,
-      "subtitle_langs": ["ko-orig", "ko", "en"]
+      "subtitle_langs": [
+        "ko-orig",
+        "ko",
+        "en"
+      ]
     },
     {
       "id": "mbcnews11",
       "type": "youtube_channel",
       "name": "MBCNEWS",
       "channel_id": "UCF4Wxdo3inmxP-Y59wXDsFw",
-      "enabled": true,
+      "enabled": false,
       "extract_subtitles": true,
-      "subtitle_langs": ["ko-orig", "ko", "en"]
+      "subtitle_langs": [
+        "ko-orig",
+        "ko",
+        "en"
+      ]
     },
     {
       "id": "leejaemyungtv",
       "type": "youtube_channel",
       "name": "이재명tv",
       "channel_id": "UCNJM6dqu70Qr6VaseiW1Org",
-      "enabled": true,
+      "enabled": false,
       "extract_subtitles": true,
-      "subtitle_langs": ["ko-orig", "ko", "en"]
+      "subtitle_langs": [
+        "ko-orig",
+        "ko",
+        "en"
+      ]
     },
     {
       "id": "ktv_korea",
       "type": "youtube_channel",
       "name": "KTV 국민방송",
       "channel_id": "UCIMOytYIzaUpoAM2bpT4JZQ",
-      "enabled": true,
+      "enabled": false,
       "extract_subtitles": true,
-      "subtitle_langs": ["ko-orig", "ko", "en"]
+      "subtitle_langs": [
+        "ko-orig",
+        "ko",
+        "en"
+      ]
     }
   ]
 }
