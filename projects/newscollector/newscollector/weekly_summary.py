@@ -2,6 +2,8 @@
 
 import json
 import re
+import shutil
+import subprocess
 from dataclasses import asdict, dataclass
 from datetime import date, datetime
 from pathlib import Path
@@ -454,6 +456,111 @@ def _extract_json_object(text: str) -> Dict[str, object] | None:
     return None
 
 
+def _build_llm_prompt(
+    report_date: date,
+    weather_line: str,
+    holiday_line: str,
+    rss_quality_overview: str,
+    rss_lines: List[str],
+    youtube_lines: List[str],
+    macro_lines: List[str],
+) -> str:
+    return (
+        "아래 최근 7일 데이터(RSS, 유튜브, 거시 컨텍스트)로 한국어 리포트를 작성해라.\n"
+        "기존 템플릿의 고정 섹션 순서는 무시하고, 내용 흐름 중심으로 재배열해라.\n"
+        "반드시 JSON 객체 하나만 출력하고, 키는 아래와 정확히 일치해야 한다.\n"
+        "{\n"
+        '  "main_topic": "한 문장",\n'
+        '  "tags": ["태그1","태그2"],\n'
+        '  "report_body": "마크다운 본문"\n'
+        "}\n\n"
+        "작성 규칙:\n"
+        f"- 오늘 기준일은 {report_date.isoformat()}이다.\n"
+        "- 지난 7일간 지속된 이슈를 먼저 정리하고, 오늘 해당 이슈가 어떻게 진전/변형됐는지 반드시 별도 소제목으로 작성한다.\n"
+        "- 새롭게 발생한 이슈는 전망(상방/하방 또는 시나리오)까지 제시한다.\n"
+        "- 단발성 사건성 뉴스는 생략하거나 1~2줄로 매우 간단히 언급한다.\n"
+        "- 마크다운에서 H1/H2/H3와 bullet을 적극 사용한다.\n"
+        "- 해딩에 1), 1. 같은 번호 표기는 사용하지 않는다.\n"
+        "- 핵심 포인트에는 **중요** 표기를 넣는다.\n"
+        "- # 개별 주 주식 시장 전망 아래에는 반드시 ## 한국, ## 미국/글로벌 하위 해딩을 둔다.\n"
+        "- 종목명은 반드시 **종목명** 형태로 볼드 처리한다.\n"
+        "- 투자 조언 단정 표현은 금지하고 리스크를 함께 제시한다.\n"
+        "- report_body에는 최소한 아래 H1 제목을 포함한다:\n"
+        "  # 뉴스 종합\n"
+        "  # 한국 주식 시장 전망\n"
+        "  # 미국 주식 시장 전망\n"
+        "  # 개별 주 주식 시장 전망\n"
+        "  # AI 의견\n\n"
+        "[Today Context]\n"
+        f"Weather: {weather_line or '(none)'}\n"
+        f"Holiday: {holiday_line or '(none)'}\n"
+        f"RSS quality overview: {rss_quality_overview}\n\n"
+        "[RSS]\n"
+        + ("\n".join(rss_lines) if rss_lines else "(none)")
+        + "\n\n[YouTube]\n"
+        + ("\n".join(youtube_lines) if youtube_lines else "(none)")
+        + "\n\n[Macro]\n"
+        + ("\n".join(macro_lines) if macro_lines else "(none)")
+    )
+
+
+def _extract_openclaw_usage(
+    raw: Dict[str, object],
+    requested_model: str,
+) -> LLMUsage:
+    result = raw.get("result")
+    meta = result.get("meta") if isinstance(result, dict) else None
+    agent_meta = meta.get("agentMeta") if isinstance(meta, dict) else None
+
+    usage = agent_meta.get("lastCallUsage") if isinstance(agent_meta, dict) else None
+    if not isinstance(usage, dict):
+        usage = agent_meta.get("usage") if isinstance(agent_meta, dict) else None
+    if not isinstance(usage, dict):
+        usage = {}
+
+    prompt_tokens = _safe_int(usage.get("input", 0))
+    completion_tokens = _safe_int(usage.get("output", 0))
+    total_tokens = _safe_int(usage.get("total", 0))
+    cached_prompt_tokens = _safe_int(usage.get("cacheRead", 0))
+
+    response_model = ""
+    if isinstance(agent_meta, dict):
+        response_model = str(agent_meta.get("model", "") or "").strip()
+
+    if total_tokens <= 0:
+        total_tokens = max(0, prompt_tokens) + max(0, completion_tokens)
+
+    estimated_cost_usd = _estimate_cost_usd(
+        model_name=response_model or requested_model,
+        prompt_tokens=max(0, prompt_tokens),
+        completion_tokens=max(0, completion_tokens),
+        cached_prompt_tokens=max(0, cached_prompt_tokens),
+    )
+    return LLMUsage(
+        requested_model=requested_model,
+        response_model=response_model,
+        prompt_tokens=max(0, prompt_tokens),
+        completion_tokens=max(0, completion_tokens),
+        total_tokens=max(0, total_tokens),
+        cached_prompt_tokens=max(0, cached_prompt_tokens),
+        estimated_cost_usd=estimated_cost_usd,
+    )
+
+
+def _extract_openclaw_payload_text(raw: Dict[str, object]) -> str:
+    result = raw.get("result")
+    payloads = result.get("payloads") if isinstance(result, dict) else None
+    if not isinstance(payloads, list):
+        return ""
+    for payload in payloads:
+        if not isinstance(payload, dict):
+            continue
+        text = str(payload.get("text", "") or "").strip()
+        if text:
+            return text
+    return ""
+
+
 def _looks_market_relevant(item: NewsItem) -> bool:
     text = f"{item.title} {item.summary} {item.article_text[:500]}".lower()
     return any(keyword in text for keyword in MARKET_RELEVANT_KEYWORDS)
@@ -847,42 +954,14 @@ def _generate_with_openai(
     if OpenAI is None:
         return None, _empty_llm_usage(model)
     client = OpenAI(api_key=api_key)
-    prompt = (
-        "아래 최근 7일 데이터(RSS, 유튜브, 거시 컨텍스트)로 한국어 리포트를 작성해라.\n"
-        "기존 템플릿의 고정 섹션 순서는 무시하고, 내용 흐름 중심으로 재배열해라.\n"
-        "반드시 JSON 객체 하나만 출력하고, 키는 아래와 정확히 일치해야 한다.\n"
-        "{\n"
-        '  "main_topic": "한 문장",\n'
-        '  "tags": ["태그1","태그2"],\n'
-        '  "report_body": "마크다운 본문"\n'
-        "}\n\n"
-        "작성 규칙:\n"
-        f"- 오늘 기준일은 {report_date.isoformat()}이다.\n"
-        "- 지난 7일간 지속된 이슈를 먼저 정리하고, 오늘 해당 이슈가 어떻게 진전/변형됐는지 반드시 별도 소제목으로 작성한다.\n"
-        "- 새롭게 발생한 이슈는 전망(상방/하방 또는 시나리오)까지 제시한다.\n"
-        "- 단발성 사건성 뉴스는 생략하거나 1~2줄로 매우 간단히 언급한다.\n"
-        "- 마크다운에서 H1/H2/H3와 bullet을 적극 사용한다.\n"
-        "- 해딩에 1), 1. 같은 번호 표기는 사용하지 않는다.\n"
-        "- 핵심 포인트에는 **중요** 표기를 넣는다.\n"
-        "- # 개별 주 주식 시장 전망 아래에는 반드시 ## 한국, ## 미국/글로벌 하위 해딩을 둔다.\n"
-        "- 종목명은 반드시 **종목명** 형태로 볼드 처리한다.\n"
-        "- 투자 조언 단정 표현은 금지하고 리스크를 함께 제시한다.\n"
-        "- report_body에는 최소한 아래 H1 제목을 포함한다:\n"
-        "  # 뉴스 종합\n"
-        "  # 한국 주식 시장 전망\n"
-        "  # 미국 주식 시장 전망\n"
-        "  # 개별 주 주식 시장 전망\n"
-        "  # AI 의견\n\n"
-        "[Today Context]\n"
-        f"Weather: {weather_line or '(none)'}\n"
-        f"Holiday: {holiday_line or '(none)'}\n"
-        f"RSS quality overview: {rss_quality_overview}\n\n"
-        "[RSS]\n"
-        + ("\n".join(rss_lines) if rss_lines else "(none)")
-        + "\n\n[YouTube]\n"
-        + ("\n".join(youtube_lines) if youtube_lines else "(none)")
-        + "\n\n[Macro]\n"
-        + ("\n".join(macro_lines) if macro_lines else "(none)")
+    prompt = _build_llm_prompt(
+        report_date=report_date,
+        weather_line=weather_line,
+        holiday_line=holiday_line,
+        rss_quality_overview=rss_quality_overview,
+        rss_lines=rss_lines,
+        youtube_lines=youtube_lines,
+        macro_lines=macro_lines,
     )
 
     request = {
@@ -901,6 +980,90 @@ def _generate_with_openai(
         completion = client.chat.completions.create(**request)
     llm_usage = _extract_llm_usage(completion, requested_model=model)
     content = completion.choices[0].message.content or ""
+    obj = _extract_json_object(content)
+    if not obj:
+        return None, llm_usage
+
+    main_topic = str(obj.get("main_topic", "")).strip()
+    report_body = str(obj.get("report_body", "")).strip()
+    if not report_body:
+        return None, llm_usage
+
+    tags_raw = obj.get("tags", [])
+    tags = (
+        [str(tag).strip() for tag in tags_raw if str(tag).strip()]
+        if isinstance(tags_raw, list)
+        else []
+    )
+    if not main_topic:
+        main_topic = "최근 7일 누적 이슈의 진행 경과와 오늘 변화를 중심으로 한 시장 점검"
+    return (
+        WeeklySummaryData(
+            main_topic=main_topic,
+            weather_line=weather_line,
+            holiday_line=holiday_line,
+            tags=(tags[:8] or ["daily-summary", "weekly-window", "trend-first"]),
+            report_body=report_body,
+        ),
+        llm_usage,
+    )
+
+
+def _generate_with_openclaw(
+    model: str,
+    report_date: date,
+    weather_line: str,
+    holiday_line: str,
+    rss_quality_overview: str,
+    rss_lines: List[str],
+    youtube_lines: List[str],
+    macro_lines: List[str],
+) -> tuple[WeeklySummaryData | None, LLMUsage]:
+    openclaw_bin = shutil.which("openclaw")
+    if not openclaw_bin:
+        return None, _empty_llm_usage(model)
+
+    prompt = _build_llm_prompt(
+        report_date=report_date,
+        weather_line=weather_line,
+        holiday_line=holiday_line,
+        rss_quality_overview=rss_quality_overview,
+        rss_lines=rss_lines,
+        youtube_lines=youtube_lines,
+        macro_lines=macro_lines,
+    )
+
+    cmd = [
+        openclaw_bin,
+        "agent",
+        "--agent",
+        "main",
+        "--thinking",
+        "low",
+        "--json",
+        "--message",
+        prompt,
+    ]
+    proc = subprocess.run(
+        cmd,
+        capture_output=True,
+        text=True,
+        cwd=str(Path(__file__).resolve().parents[1]),
+    )
+    if proc.returncode != 0:
+        detail = proc.stderr.strip() or proc.stdout.strip() or "unknown openclaw error"
+        raise RuntimeError(f"openclaw agent failed: {detail}")
+
+    output = (proc.stdout or "").strip()
+    if not output:
+        return None, _empty_llm_usage(model)
+
+    raw = json.loads(output)
+    if not isinstance(raw, dict):
+        return None, _empty_llm_usage(model)
+
+    llm_usage = _extract_openclaw_usage(raw, requested_model=model)
+    content = _extract_openclaw_payload_text(raw)
     obj = _extract_json_object(content)
     if not obj:
         return None, llm_usage
@@ -993,9 +1156,26 @@ def render_weekly_summary_report(
     summary = None
     llm_usage = _empty_llm_usage(model)
     mode = "heuristic"
+    try:
+        summary, llm_usage = _generate_with_openclaw(
+            model=model,
+            report_date=report_date,
+            weather_line=weather_line,
+            holiday_line=holiday_line,
+            rss_quality_overview=rss_quality_overview,
+            rss_lines=rss_lines,
+            youtube_lines=youtube_lines,
+            macro_lines=macro_lines,
+        )
+        if summary:
+            mode = "openclaw"
+    except Exception:
+        summary = None
+
     if openai_api_key:
         try:
-            summary, llm_usage = _generate_with_openai(
+            if summary is None:
+                summary, llm_usage = _generate_with_openai(
                 api_key=openai_api_key,
                 model=model,
                 report_date=report_date,
@@ -1005,9 +1185,9 @@ def render_weekly_summary_report(
                 rss_lines=rss_lines,
                 youtube_lines=youtube_lines,
                 macro_lines=macro_lines,
-            )
-            if summary:
-                mode = "openai"
+                )
+                if summary:
+                    mode = "openai"
         except Exception:  # pragma: no cover - network failures
             summary = None
 
