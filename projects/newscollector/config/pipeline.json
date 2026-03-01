@@ -9,7 +9,7 @@
     "subtitle_dir": "subtitles",
     "yt_dlp_path": "yt-dlp",
     "subtitle_command_timeout_seconds": 30,
-    "raw_collection_copy_dir": "C:/Users/namsh/Documents/MyAswomeVault/10.WorkFlow/02.DailyReport/raw_collection",
+    "raw_collection_copy_dir": "/Users/assa_david/Documents/MyAswomeVault/10.WorkFlow/02.DailyReport/raw_collection",
     "default_subtitle_langs": [
       "ko-orig",
       "ko",
@@ -24,8 +24,8 @@
   },
   "weekly_summary": {
     "enabled": true,
-    "template_path": "C:/Users/namsh/Documents/MyAswomeVault/TEMP/88. Template/Daily Summary.md",
-    "output_dir": "C:/Users/namsh/Documents/MyAswomeVault/10.WorkFlow/02.DailyReport",
+    "template_path": "/Users/assa_david/Documents/MyAswomeVault/TEMP/88. Template/Daily Summary.md",
+    "output_dir": "/Users/assa_david/Documents/MyAswomeVault/10.WorkFlow/02.DailyReport",
     "model": "gpt-5",
     "max_rss_items": 70,
     "max_youtube_items": 50
