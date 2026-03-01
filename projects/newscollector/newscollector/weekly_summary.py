@@ -1172,24 +1172,9 @@ def render_weekly_summary_report(
     except Exception:
         summary = None
 
-    if openai_api_key:
-        try:
-            if summary is None:
-                summary, llm_usage = _generate_with_openai(
-                api_key=openai_api_key,
-                model=model,
-                report_date=report_date,
-                weather_line=weather_line,
-                holiday_line=holiday_line,
-                rss_quality_overview=rss_quality_overview,
-                rss_lines=rss_lines,
-                youtube_lines=youtube_lines,
-                macro_lines=macro_lines,
-                )
-                if summary:
-                    mode = "openai"
-        except Exception:  # pragma: no cover - network failures
-            summary = None
+    # OpenClaw-only mode: keep OpenAI key for compatibility with existing config,
+    # but do not fallback to direct OpenAI API calls here.
+    _ = openai_api_key
 
     if not summary:
         summary = _default_summary(
